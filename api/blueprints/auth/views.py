@@ -10,6 +10,7 @@ from flask_login import current_user, login_user
 from sqlalchemy.orm.exc import NoResultFound
 
 from ..extensions import db
+from ..helpers import get_user_data
 from .models import OAuth, User
 
 auth = make_github_blueprint(
@@ -40,4 +41,5 @@ def github_logged_in(blueprint, token):  # pylint: disable=W0613, R1710
             db.session.add(user)
             db.session.commit()
         login_user(user=user)
-        return redirect(url_for('default.dashboard'))
+        user_data = get_user_data(info.json())
+        return redirect(url_for('default.dashboard', user_data=user_data))

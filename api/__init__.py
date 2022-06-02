@@ -9,6 +9,7 @@ from .blueprints.auth.models import User
 from .blueprints.auth.views import auth
 from .blueprints.default.views import default
 from .blueprints.extensions import db
+from .blueprints.helpers import get_user_data
 from .extensions import login_manager
 
 app = Flask(__name__)
@@ -36,4 +37,5 @@ def login():  # pylint: disable=R1710
         return redirect(url_for('github.login'))
     info = github.get('/user')
     if info.ok:
-        return redirect(url_for('default.dashboard'))
+        user_data = get_user_data(info.json())
+        return redirect(url_for('default.dashboard', user_data=user_data))
