@@ -10,6 +10,9 @@ class BaseConfig():
     DEBUG = False
     TESTING = False
 
+    SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 
 class TestingConfig(BaseConfig):
     """Configuration used during testing."""
@@ -17,6 +20,8 @@ class TestingConfig(BaseConfig):
     SECRET_KEY = os.environ['SECRET_KEY']
     DEBUG = True
     TESTING = True
+
+    SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
 
 
 class DevelopmentConfig(BaseConfig):
@@ -29,6 +34,8 @@ class DevelopmentConfig(BaseConfig):
     CLIENT_ID = os.environ['CLIENT_ID']
     CLIENT_SECRET = os.environ['CLIENT_SECRET']
 
+    SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
+
 
 class StagingConfig(BaseConfig):
     """Configuration used during staging."""
@@ -40,6 +47,8 @@ class StagingConfig(BaseConfig):
     CLIENT_ID = os.environ['CLIENT_ID']
     CLIENT_SECRET = os.environ['CLIENT_SECRET']
 
+    SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
+
 
 class ProductionConfig(BaseConfig):
     """Configuration used during production."""
@@ -50,3 +59,5 @@ class ProductionConfig(BaseConfig):
 
     CLIENT_ID = os.environ['CLIENT_ID']
     CLIENT_SECRET = os.environ['CLIENT_SECRET']
+
+    SQLALCHEMY_DATABASE_URI = os.environ['SQLALCHEMY_DATABASE_URI']
