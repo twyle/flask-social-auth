@@ -1,0 +1,103 @@
+name: "Development Build"
+on:
+  push:
+    branches: [ development ]
+  pull_request:
+    branches: [ development ]
+
+env:
+  APP_NAME: heroku-container
+
+jobs:
+
+  Build:
+
+    runs-on: ubuntu-latest
+    environment:
+      name: Development
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Test with pytest
+      run: |
+        if [ -d tests ] || [ -d test ]; then FLASK_ENV=${{secrets.FLASK_ENV}} python -m pytest; fi
+
+  Test-Local:
+    runs-on: ubuntu-latest
+    environment:
+      name: Development
+    needs: [Build]
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Test application
+      run: |
+        FLASK_ENV=${{secrets.FLASK_ENV}} python main.py &
+        sleep 10
+        curl http://127.0.0.1:5000/
+
+  DeployDev:
+    name: Deploy to Dev
+    if: github.event_name == 'pull_request'
+    needs: [Test-Local]
+    runs-on: ubuntu-latest
+    environment:
+      name: Development
+      url: 'https://${{env.APP_NAME}}-dev.herokuapp.com/'
+    steps:
+      - name: Deploy
+        run: echo I am deploying ${{ env.APP_NAME }} at https://${{env.APP_NAME}}-dev.herokuapp.com/
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "${{ env.APP_NAME }}-dev" #Must be unique in Heroku
+          heroku_email: "${{ secrets.HEROKU_EMAIL }}"
+          usedocker: true
+          docker_heroku_process_type: web
+          docker_build_args: |
+            FLASK_ENV
+        env:
+          FLASK_ENV: ${{ secrets.FLASK_ENV }}
+
+  Test-Remote:
+    name: Test Remote Deployment
+    needs: [DeployDev]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Test application
+      run: |
+        sleep 20
+        curl https://${{env.APP_NAME}}-dev.herokuapp.com/
