@@ -1,2 +1,3 @@
 # flask-social-auth
-A user management system using social auth.
+
+> A User Management system using social auth (github).
